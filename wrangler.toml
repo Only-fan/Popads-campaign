@@ -1,0 +1,11 @@
+name = "tiktok-capi-proxy"
+compatibility_date = "2024-01-15"
+
+[vars]
+TIKTOK_PIXEL_ID = "D34L17JC77U2RJTP8AUG"
+
+[env.production]
+workers_dev = false
+
+[env.development]
+workers_dev = true

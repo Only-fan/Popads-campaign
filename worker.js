@@ -1,6 +1,17 @@
 export default {
   async fetch(request, env) {
-    // Handle TikTok event tracking
+    // Handle CORS for preflight requests
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        }
+      });
+    }
+
+    // Handle TikTok event tracking for POST requests
     if (request.method === 'POST') {
       try {
         const requestData = await request.json();
@@ -13,27 +24,43 @@ export default {
             'Access-Token': env.TIKTOK_ACCESS_TOKEN
           },
           body: JSON.stringify({
-            event: requestData.event,
-            event_name: requestData.event_name,
+            event: "ClickButton",
+            event_name: "live_video_join_click",
             event_time: Math.floor(Date.now() / 1000),
-            user: requestData.user || {},
-            properties: requestData.properties || {},
-            context: requestData.context || {},
+            user: {},
+            properties: {
+              content_id: "join_live_video",
+              content_name: "Join Live Video Button",
+              content_type: "button",
+              value: 0.002,
+              currency: "USD"
+            },
             partner_name: "Cloudflare_Worker",
             access_token: env.TIKTOK_ACCESS_TOKEN
           })
         });
 
-        // Always redirect to offer link regardless of TikTok response
-        return Response.redirect('https://tinyurl.com/Arewa-nono', 302);
+        // Return success response instead of redirecting
+        return new Response(JSON.stringify({ success: true }), {
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
         
       } catch (error) {
-        // Still redirect even if tracking fails
-        return Response.redirect('https://tinyurl.com/Arewa-nono', 302);
+        // Return error response
+        return new Response(JSON.stringify({ success: false, error: error.message }), {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
       }
     }
 
-    // For GET requests, also redirect to offer link
+    // For GET requests, redirect to offer link
     return Response.redirect('https://tinyurl.com/Arewa-nono', 302);
   }
-}
+              }
